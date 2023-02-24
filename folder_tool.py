@@ -3,11 +3,11 @@ import glob
 import sys
 import json
 
-def check_folder(folder_path):
+def check_folder(folder_path, only_check_exist=False):
     if not os.path.exists(folder_path):
         print('create not exists folder', folder_path)
         os.mkdir(folder_path)
-    if len(glob.glob(folder_path + '/*')) == 0:
+    if len(glob.glob(folder_path + '/*')) == 0 or only_check_exist:
         return
     choose = input(folder_path + ' is not empty, \
         choose to remove all content(y), or not remove continue(nc), or exit(e)')
