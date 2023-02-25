@@ -30,7 +30,28 @@ def get_inertia_parameter(img_array):
     except Exception as e: 
         print(e)
         return 4,3,2,1,0
-def inertia_detection_cv_line(img, scale, width, ignore_slope=False):
+def get_box_and_line_cross(box_pts, line_pts, o_img_shape):
+    # assert box_pts.shape == (4, 1, 2), box_pts.shape
+    assert np.array(line_pts).shape == (2, 2), line_pts.shape
+
+    box_img = np.zeros(o_img_shape)
+    cv2.polylines(box_img, [box_pts], True, 1, 1)
+    line_img = np.zeros(o_img_shape)
+    cv2.line(line_img, line_pts[0], line_pts[1], 1, 1)
+
+    cross_img = box_img * line_img
+    white_pixels  = np.argwhere(cross_img == 1)
+    if len(white_pixels) == 0:
+        white_pixels  = np.argwhere(line_img == 1)
+
+    min_point = white_pixels[np.argmin(white_pixels[:, 0])]
+    max_point = white_pixels[np.argmax(white_pixels[:, 0])]
+    min_point = [min_point[1], min_point[0]]
+    max_point = [max_point[1], max_point[0]]
+    return [min_point, max_point]
+
+
+def inertia_detection_cv_line(img, scale=1000, width=10, ignore_slope=False):
     x_v1, y_v1, x_mean, y_mean, len_non_zero = get_inertia_parameter(img)
     # if ignore_slope:
     cv2.line(img, (int(x_v1*-scale*2+x_mean),int(y_v1*-scale*2+y_mean)),(int(x_v1*scale*2+x_mean),int(y_v1*scale*2+y_mean)), (255, 0, 255), width)
@@ -65,6 +86,16 @@ def point_in_left_side_of_line(point,line_edge1,line_edge2):
             return True
         else:
             return False
+def molar(tooth_num_str):
+    '''
+    input: '3', '12'
+    output: T, F
+    '''
+    tooth_num = int(tooth_num_str)
+    if (tooth_num >= 1 and tooth_num <=3) or (tooth_num >= 14 and tooth_num <=19) or (tooth_num >= 30 and tooth_num <=32):
+        return True
+    else:
+        return False
 def get_molar_line(fill_up_img, line_of_inertia, type_):
     y_list,x_list = np.nonzero(fill_up_img)
     
